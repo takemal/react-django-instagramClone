@@ -1,8 +1,9 @@
+import { myprofileURL, profilesURL, profileURL } from './../urls/index';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Authen, Profile } from '../types/type';
 import axios from 'axios';
-
-const apiUrl = process.env.REACT_APP_DEV_API_URL;
+import { jwtURL, registerURL } from '../urls';
+import { RootState } from './store';
 
 // ユーザー情報の初期化
 export const initialAuthState = {
@@ -29,69 +30,82 @@ export const initialAuthState = {
   ],
 };
 
-// ログイン
-export const fetchAsyncLogin = createAsyncThunk('auth/post', async (authen: Authen) => {
-  const res = await axios.post(`${apiUrl}authen/jwt/create`, authen, {
+//prettier-ignore
+//ログイン
+export const asyncLogin = createAsyncThunk('auth/post', async (authData: Authen) => {
+  return axios.post(jwtURL, authData, {
+    headers: {
+        'Content-Type': 'application/json',
+      },
+  })
+    .then(res => { return res.data })
+    .catch((e) => console.error(e))
+});
+
+//prettier-ignore
+//ユーザ登録
+export const asyncRegister = createAsyncThunk('auth/register', async (authData: Authen) => {
+  return await axios.post(registerURL, authData, {
     headers: {
       'Content-Type': 'application/json',
     },
-  });
-  return res.data;
+  })
+    .then(res => { return res.data })
+    .catch((e) => console.error(e))
 });
 
-// サインアップ
-export const fetchAsyncRegister = createAsyncThunk('auth/register', async (auth: Authen) => {
-  const res = await axios.post(`${apiUrl}api/register/`, auth, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return res.data;
-});
-
-// プロフィール作成
-export const fetchAsyncCreateProf = createAsyncThunk('profile/post', async (nickName: string) => {
-  const res = await axios.post(`${apiUrl}api/profile/`, nickName, {
+//プロフィール作成(名前のみ)
+//prettier-ignore
+export const asyncCreateProf = createAsyncThunk('profile/post', async (nickName: string) => {
+  return await axios.post(profilesURL, {nickName:nickName}, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `JWT ${localStorage.localJWT}`,
     },
-  });
-  return res.data;
+  })
+  .then(res => { return res.data })
+  .catch((e) => console.error(e))
 });
 
-// プロフィール更新
-export const fetchAsyncUpdateProf = createAsyncThunk('profile/put', async (profile: Profile) => {
+//プロフィール更新
+//prettier-ignore
+export const asyncUpdateProf = createAsyncThunk('profile/put', async (profile: Profile) => {
   const uploadData = new FormData();
   uploadData.append('nickName', profile.nickName);
   profile.img && uploadData.append('img', profile.img, profile.img.name);
-  const res = await axios.put(`${apiUrl}api/profile/${profile.id}/`, uploadData, {
+  return await axios.put(profilesURL, uploadData, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `JWT ${localStorage.localJWT}`,
     },
-  });
-  return res.data;
+  })
+  .then(res => { return res.data })
+  .catch((e) => console.error(e))
 });
 
-// ログインしているユーザを取得する
-export const fetchAsyncGetMyProf = createAsyncThunk('profile/get', async () => {
-  const res = await axios.get(`${apiUrl}api/myprofile/`, {
+//ログインユーザプロフィール取得
+//prettier-ignore
+export const asyncGetMyProf = createAsyncThunk('profile/get', async () => {
+  return await axios.get(myprofileURL, {
     headers: {
       Authorization: `JWT ${localStorage.localJWT}`,
     },
-  });
-  return res.data[0];
+  })
+    // 配列で返るため、[0]指定
+    .then(res => { return res.data[0] })
+    .catch((e) => console.error(e))
 });
 
-// プロフィールを全件取得する
-export const fetchAsyncGetProfs = createAsyncThunk('profiles/get', async () => {
-  const res = await axios.get(`${apiUrl}api/profile/`, {
+//プロフィール全件取得
+//prettier-ignore
+export const asyncGetProfs = createAsyncThunk('profiles/get', async () => {
+  return await axios.get(profilesURL, {
     headers: {
       Authorization: `JWT ${localStorage.localJWT}`,
     },
-  });
-  return res.data;
+  })
+  .then(res => { return res.data })
+  .catch((e) => console.error(e))
 });
 
 export const authSlice = createSlice({
@@ -137,19 +151,19 @@ export const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(fetchAsyncLogin.fulfilled, (state, action) => {
+    builder.addCase(asyncLogin.fulfilled, (state, action) => {
       localStorage.setItem('localJWT', action.payload.access);
     });
-    builder.addCase(fetchAsyncCreateProf.fulfilled, (state, action) => {
+    builder.addCase(asyncCreateProf.fulfilled, (state, action) => {
       state.myprofile = action.payload;
     });
-    builder.addCase(fetchAsyncGetMyProf.fulfilled, (state, action) => {
+    builder.addCase(asyncGetMyProf.fulfilled, (state, action) => {
       state.myprofile = action.payload;
     });
-    builder.addCase(fetchAsyncGetProfs.fulfilled, (state, action) => {
+    builder.addCase(asyncGetProfs.fulfilled, (state, action) => {
       state.profiles = action.payload;
     });
-    builder.addCase(fetchAsyncUpdateProf.fulfilled, (state, action) => {
+    builder.addCase(asyncUpdateProf.fulfilled, (state, action) => {
       state.myprofile = action.payload;
       state.profiles = state.profiles.map((prof) => (prof.id === action.payload.id ? action.payload : prof));
     });
@@ -168,3 +182,6 @@ export const {
   resetOpenProfileAction,
   editNickNameAction,
 } = authSlice.actions;
+
+// state情報をそのままとる
+export const selectAuth = (state: RootState) => state.auth;

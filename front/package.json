@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@hookform/resolvers": "^2.9.10",
     "@mui/icons-material": "^5.10.14",
     "@mui/material": "^5.10.14",
     "@mui/system": "^5.10.14",
@@ -23,6 +24,7 @@
     "formik-material-ui": "^4.0.0-alpha.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.39.5",
     "react-icons": "^4.6.0",
     "react-modal": "^3.16.1",
     "react-redux": "^8.0.5",
