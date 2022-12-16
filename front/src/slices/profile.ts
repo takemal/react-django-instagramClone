@@ -1,30 +1,27 @@
-import { myprofileURL, profilesURL, profileURL } from './../urls/index';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { myprofileURL, profilesURL } from '../urls/index';
+import { Action, createAsyncThunk, createSelector, createSlice, Dispatch } from '@reduxjs/toolkit';
 import { Authen, Profile } from '../types/type';
 import axios from 'axios';
 import { jwtURL, registerURL } from '../urls';
 import { RootState } from './store';
+import { isLoadingAction } from './fetchState';
 
 // ユーザー情報の初期化
-export const initialAuthState = {
+export const initialProfileState = {
   // モーダル
-  openSignIn: true,
-  openSignUp: false,
-  openProfile: false,
-  isLoadingAuth: false,
   myprofile: {
     id: 0,
     nickName: '',
-    userProfile: 0,
-    created_on: '',
+    user_id: 0,
+    created_at: '',
     img: '',
   },
   profiles: [
     {
       id: 0,
       nickName: '',
-      userProfile: 0,
-      created_on: '',
+      user_id: 0,
+      created_at: '',
       img: '',
     },
   ],
@@ -32,8 +29,9 @@ export const initialAuthState = {
 
 //prettier-ignore
 //ログイン
-export const asyncLogin = createAsyncThunk('auth/post', async (authData: Authen) => {
-  return axios.post(jwtURL, authData, {
+export const asyncLogin = createAsyncThunk('auth/post', async (data: Authen, thunkAPI) => {
+  thunkAPI.dispatch(isLoadingAction(true))
+  return axios.post(jwtURL, data, {
     headers: {
         'Content-Type': 'application/json',
       },
@@ -44,8 +42,9 @@ export const asyncLogin = createAsyncThunk('auth/post', async (authData: Authen)
 
 //prettier-ignore
 //ユーザ登録
-export const asyncRegister = createAsyncThunk('auth/register', async (authData: Authen) => {
-  return await axios.post(registerURL, authData, {
+export const asyncRegister = createAsyncThunk('auth/register', async (data: Authen) => {
+  console.log(data)
+  return await axios.post(registerURL, data, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -108,43 +107,10 @@ export const asyncGetProfs = createAsyncThunk('profiles/get', async () => {
   .catch((e) => console.error(e))
 });
 
-export const authSlice = createSlice({
-  name: 'auth',
-  initialState: initialAuthState,
+export const profileSlice = createSlice({
+  name: 'profile',
+  initialState: initialProfileState,
   reducers: {
-    // fetchの開始
-    fetchStartAction: (state) => {
-      return { ...state, isLoadingAuth: true };
-    },
-
-    // fetchの終了
-    fetchEndAction: (state) => {
-      return { ...state, isLoadingAuth: false };
-    },
-    // サインインモード
-    setOpenSignInAction: (state) => {
-      return { ...state, openSignIn: true };
-    },
-    // サインインモード解除
-    resetOpenSignInAction: (state) => {
-      return { ...state, openSignIn: false };
-    },
-    // サインアップモード
-    setOpenSignUpAction: (state) => {
-      return { ...state, openSignUp: true };
-    },
-    // サインアップモード解除
-    resetOpenSignUpAction: (state) => {
-      return { ...state, openSignUp: false };
-    },
-    // プロフィールモード
-    setOpenProfileAction: (state) => {
-      return { ...state, openProfile: true };
-    },
-    // プロフィールモード解除
-    resetOpenProfileAction: (state) => {
-      return { ...state, openProfile: false };
-    },
     // プロフィール編集
     editNickNameAction: (state, action) => {
       state.myprofile.nickName = action.payload;
@@ -170,18 +136,14 @@ export const authSlice = createSlice({
   },
 });
 
-export const authReducer = authSlice.reducer;
-export const {
-  fetchStartAction,
-  fetchEndAction,
-  setOpenSignInAction,
-  resetOpenSignInAction,
-  setOpenSignUpAction,
-  resetOpenSignUpAction,
-  setOpenProfileAction,
-  resetOpenProfileAction,
-  editNickNameAction,
-} = authSlice.actions;
+export const profileReducer = profileSlice.reducer;
+export const { editNickNameAction } = profileSlice.actions;
 
 // state情報をそのままとる
-export const selectAuth = (state: RootState) => state.auth;
+export const selectProfile = (state: RootState) => state.profile;
+
+// セレクター
+const profileSelector = (state: RootState) => state.profile;
+export const getProfiles = createSelector([profileSelector], (state) => state.profiles);
+
+export const getMyProfile = createSelector([profileSelector], (state) => state.myprofile);

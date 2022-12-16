@@ -1,4 +1,4 @@
-export type OnClick = React.MouseEvent<HTMLInputElement>;
+export type OnClick = React.MouseEvent<HTMLElement> | React.MouseEvent<HTMLInputElement>;
 export type OnChange = React.ChangeEvent<HTMLInputElement>;
 export type Onkeypress = React.KeyboardEvent<HTMLInputElement>;
 export type OnBlur = React.FocusEvent<HTMLInputElement>;

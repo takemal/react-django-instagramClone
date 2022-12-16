@@ -1,11 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { authReducer } from './auth';
-import counterReducer from '../features/counter/counterSlice';
+import { profileReducer } from './profile';
+import { postsReducer } from './posts';
+import { modalReducer } from './modal';
+import { fetchStateReducer } from './fetchState';
+import { commentsReducer } from './comments';
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
-    counter: counterReducer,
+    profile: profileReducer,
+    posts: postsReducer,
+    comments: commentsReducer,
+    modal: modalReducer,
+    fetchState: fetchStateReducer,
   },
 });
 
